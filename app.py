@@ -5,15 +5,14 @@ import base64
 import os
 from gtts import gTTS
 import pyttsx3
+from pydub import AudioSegment
 
 st.set_page_config(page_title="Text to Speech", layout="centered")
 st.title("🗣️ Aplikasi Text-to-Speech Indonesia & Inggris")
 
-# Inisialisasi session state
 if "input_text" not in st.session_state:
     st.session_state.input_text = ""
 
-# Pilih mode input
 mode = st.radio("Pilih Mode Input:", ["Ketik Teks", "Ucapkan Teks (Speech to Text)"])
 
 if mode == "Ketik Teks":
@@ -33,18 +32,14 @@ else:
             except:
                 st.error("❌ Tidak dapat mengenali suara. Coba lagi.")
 
-# Proses jika ada teks
 if st.session_state.input_text.strip() != "":
     st.subheader("📄 Teks Akan Dibacakan:")
     st.info(st.session_state.input_text)
 
-    # Pilihan jenis suara
     voice_type = st.selectbox("🗣️ Pilih Suara:", ["Perempuan (Bahasa Indonesia)", "Laki-Laki (English)"])
-
-    # Pilihan kecepatan
     speed = st.selectbox("🎚️ Kecepatan Bicara:", ["Lambat", "Normal", "Cepat"])
     speed_map = {"Lambat": 125, "Normal": 175, "Cepat": 225}
-    slow_gtts = True if speed == "Lambat" else False  # untuk gTTS hanya dua kecepatan
+    slow_gtts = True if speed == "Lambat" else False
 
     if st.button("🔁 Konversi ke Suara & Tampilkan"):
         try:
@@ -52,46 +47,49 @@ if st.session_state.input_text.strip() != "":
                 tts = gTTS(text=st.session_state.input_text, lang='id', slow=slow_gtts)
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as f:
                     tts.save(f.name)
-                    b64 = base64.b64encode(open(f.name, "rb").read()).decode()
-                    st.markdown(f"""
-                        <audio controls>
-                            <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
-                        </audio>
-                    """, unsafe_allow_html=True)
-                    st.download_button("💾 Download Suara", open(f.name, "rb"), file_name="hasil_tts.mp3", mime="audio/mp3")
+                    audio_path = f.name
+
+                # Play preview (selalu normal karena gTTS tidak dukung "cepat")
+                b64 = base64.b64encode(open(audio_path, "rb").read()).decode()
+                st.markdown(f"""
+                    <audio controls>
+                        <source src="data:audio/mp3;base64,{b64}" type="audio/mp3">
+                    </audio>
+                """, unsafe_allow_html=True)
+
+                # Siapkan file download
+                download_path = audio_path
+                if speed == "Cepat":
+                    # Proses jadi lebih cepat (pitch/speed up)
+                    sound = AudioSegment.from_file(audio_path)
+                    faster = sound.speedup(playback_speed=1.4)
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as f2:
+                        faster.export(f2.name, format="mp3")
+                        download_path = f2.name
+
+                st.download_button("💾 Download Suara", open(download_path, "rb"), file_name="hasil_tts.mp3", mime="audio/mp3")
 
             elif voice_type == "Laki-Laki (English)":
                 engine = pyttsx3.init()
                 voices = engine.getProperty("voices")
-
-                # Cari suara laki-laki bahasa Inggris (David / Mark)
-                selected_voice = None
-                for v in voices:
-                    name = v.name.lower()
-                    if "david" in name or "mark" in name:
-                        selected_voice = v
-                        break
+                selected_voice = next((v for v in voices if "david" in v.name.lower() or "mark" in v.name.lower()), None)
 
                 if selected_voice:
                     engine.setProperty("voice", selected_voice.id)
-                else:
-                    st.warning("❗ Suara laki-laki tidak ditemukan, menggunakan suara default.")
-
                 engine.setProperty("rate", speed_map[speed])
 
                 with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as f:
                     audio_path = f.name
+
                 engine.save_to_file(st.session_state.input_text, audio_path)
                 engine.runAndWait()
 
-                audio_bytes = open(audio_path, 'rb').read()
-                st.audio(audio_bytes, format="audio/mp3")
+                st.audio(open(audio_path, "rb").read(), format="audio/mp3")
                 st.download_button("💾 Download Suara", open(audio_path, "rb"), file_name="hasil_tts.mp3", mime="audio/mp3")
 
         except Exception as e:
             st.error(f"Terjadi kesalahan: {e}")
 
-# Footer
 st.markdown("""
 <hr style='border: 1px solid #ddd;'>
 <div style="text-align: center; font-size: 18px; margin-top: 30px;">
