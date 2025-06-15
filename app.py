@@ -68,3 +68,19 @@ if st.session_state.input_text.strip() != "":
                 st.download_button("💾 Download Suara", open(f.name, "rb"), file_name="hasil_tts.mp3", mime="audio/mp3")
         except ValueError as e:
             st.error(f"Terjadi kesalahan: {e}")
+
+# ============================
+# Identitas Kelompok
+# ============================
+# Tambahkan identitas dengan emoji khusus
+st.markdown("""
+<hr style='border: 1px solid #ddd;'>
+
+<div style="text-align: center; font-size: 18px; margin-top: 30px;">
+    <p><strong>👥 Kelompok C14</strong></p>
+    <p>👸🏻 <strong>152022018</strong> - Sadira Amalina F</p>
+    <p>👨🏽‍🌾 <strong>152022087</strong> - Abhyasa Gunawan Y</p>
+</div>
+
+<hr style='border: 1px solid #ddd;'>
+""", unsafe_allow_html=True)
