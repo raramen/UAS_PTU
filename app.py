@@ -69,10 +69,7 @@ if st.session_state.input_text.strip() != "":
         except ValueError as e:
             st.error(f"Terjadi kesalahan: {e}")
 
-# ============================
-# Identitas Kelompok
-# ============================
-# Tambahkan identitas dengan emoji khusus
+
 st.markdown("""
 <hr style='border: 1px solid #ddd;'>
 
