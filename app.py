@@ -10,7 +10,7 @@ import time
 import pandas as pd
 
 st.set_page_config(page_title="TTS Indonesia", layout="centered")
-st.title("🗣️ Aplikasi Text-to-Speech Bahasa Indonesia")
+st.title("🗣️ Aplikasi Text-to-Speech dan Speech-to-Text")
 
 # Inisialisasi session state
 if "input_text" not in st.session_state:
